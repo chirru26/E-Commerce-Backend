@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
   application:
     name: ecommerce-gateway
   cloud:
@@ -12,8 +14,10 @@ spring:
                 - Path=/api/**
           metrics:
             enabled: true
+
 server:
   port: ${GATEWAY_PORT:8080}
+
 management:
   endpoints:
     web:
