@@ -4,13 +4,15 @@ services:
     container_name: ecommerce-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ecommerce
-      POSTGRES_USER: ecommerce
-      POSTGRES_PASSWORD: ecommerce
-    ports: ["5433:5432"]
-    volumes: [postgres_data:/var/lib/postgresql/data]
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL","pg_isready -U ecommerce -d ecommerce"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -19,11 +21,13 @@ services:
     image: redis:7-alpine
     container_name: ecommerce-redis
     restart: unless-stopped
-    command: ["redis-server","--appendonly","yes"]
-    ports: ["6379:6379"]
-    volumes: [redis_data:/data]
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
     healthcheck:
-      test: ["CMD","redis-cli","ping"]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -33,9 +37,10 @@ services:
     container_name: ecommerce-pgadmin
     restart: unless-stopped
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@ecommerce.local
-      PGADMIN_DEFAULT_PASSWORD: admin
-    ports: ["5050:80"]
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
     depends_on:
       postgres:
         condition: service_healthy
@@ -44,7 +49,8 @@ services:
     image: redis/redisinsight:latest
     container_name: ecommerce-redisinsight
     restart: unless-stopped
-    ports: ["5540:5540"]
+    ports:
+      - "${REDISINSIGHT_PORT:-5540}:5540"
     depends_on:
       redis:
         condition: service_healthy
@@ -53,36 +59,54 @@ services:
     image: axllent/mailpit:latest
     container_name: ecommerce-mailpit
     restart: unless-stopped
-    ports: ["1025:1025","8025:8025"]
+    ports:
+      - "${MAIL_SMTP_PORT:-1025}:1025"
+      - "${MAIL_UI_PORT:-8025}:8025"
 
   backend:
-    build: {context: ., dockerfile: Dockerfile}
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: ecommerce-backend
     restart: unless-stopped
     environment:
       SPRING_PROFILES_ACTIVE: docker
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_NAME: ecommerce
-      DB_USERNAME: ecommerce
-      DB_PASSWORD: ecommerce
+      DB_NAME: ${POSTGRES_DB}
+      DB_USERNAME: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       SERVER_PORT: 8081
-    ports: ["8081:8081"]
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_EXPIRATION: ${JWT_ACCESS_EXPIRATION:-900}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-604800}
+      JPA_DDL_AUTO: ${JPA_DDL_AUTO:-validate}
+      FLYWAY_ENABLED: ${FLYWAY_ENABLED:-true}
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+    ports:
+      - "${SERVER_PORT:-8081}:8081"
     depends_on:
-      postgres: {condition: service_healthy}
-      redis: {condition: service_healthy}
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   gateway:
-    build: {context: ./gateway, dockerfile: Dockerfile}
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
     container_name: ecommerce-gateway
     restart: unless-stopped
     environment:
       GATEWAY_PORT: 8080
       BACKEND_URL: http://backend:8081
-    ports: ["8080:8080"]
-    depends_on: [backend]
+    ports:
+      - "${GATEWAY_PORT:-8080}:8080"
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:
