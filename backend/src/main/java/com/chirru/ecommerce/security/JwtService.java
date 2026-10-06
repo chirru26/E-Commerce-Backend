@@ -30,6 +30,7 @@ public class JwtService {
     public String issueAccessToken(IdentityUser user) {
         Instant now = Instant.now();
         return Jwts.builder()
+                .id(UUID.randomUUID().toString())
                 .subject(user.getId().toString())
                 .claim("email", user.getEmail())
                 .claim("role", user.getRole().name())
