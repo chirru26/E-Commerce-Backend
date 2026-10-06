@@ -99,7 +99,7 @@ public class AuthService {
     }
 
     private static void validatePassword(String password) {
-        if (password == null || password.length() < 12 || password.length() > 72) {
+        if (password == null || password.length() < 12 || password.length() > 72\n                || password.getBytes(StandardCharsets.UTF_8).length > 72) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password must be between 12 and 72 characters");
         }
     }
