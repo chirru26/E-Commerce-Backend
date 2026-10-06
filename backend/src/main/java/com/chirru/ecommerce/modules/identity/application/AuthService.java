@@ -68,7 +68,7 @@ public class AuthService {
         if (rawToken == null || rawToken.isBlank()) {
             throw new BadCredentialsException("Invalid refresh token");
         }
-        RefreshToken stored = refreshTokens.findByTokenHash(hash(rawToken))
+        RefreshToken stored = refreshTokens.findByTokenHashForUpdate(hash(rawToken))
                 .orElseThrow(() -> new BadCredentialsException("Invalid refresh token"));
         if (stored.isRevoked() || stored.isExpired() || !stored.getUser().isEnabled()) {
             throw new BadCredentialsException("Invalid refresh token");
