@@ -59,6 +59,23 @@ Admin provisioning is disabled by default. To create the first administrator int
 
 If the email already belongs to an enabled administrator, bootstrap is a no-op. If it belongs to a normal or disabled account, application startup fails rather than promoting that account. Do not leave bootstrap enabled or use it as a routine production provisioning mechanism. Use HTTPS and keep all secrets out of source control.
 
+## Product Catalog API
+
+Public reads do not require authentication:
+
+- `GET /api/v1/categories` and `GET /api/v1/categories/{slug}` — active categories.
+- `GET /api/v1/products?q=kumkum&category=puja-essentials&page=0&size=20` — search active products with pagination.
+- `GET /api/v1/products/{slug}` — public product details.
+
+Catalog writes and management are restricted to administrators:
+
+- `GET|POST /api/v1/admin/catalog/categories`
+- `PUT|DELETE /api/v1/admin/catalog/categories/{id}`
+- `GET|POST /api/v1/admin/catalog/products`
+- `PUT|DELETE /api/v1/admin/catalog/products/{id}`
+
+Product creation requires a unique SKU, price greater than zero, currency code (defaults to INR), and an active category. Products default to `DRAFT` unless an administrator explicitly sets their status to `ACTIVE`. Public search only returns active products in active categories. Deleting a product archives it, and deleting a category deactivates it, preserving references for future orders and inventory records. Public pagination defaults to 20 products and caps page size at 100.
+
 ## Verification
 
 GitHub Actions runs `mvn clean verify`, validates the Compose configuration, and builds both application images for pushes to `main` and pull requests. See the repository's Actions tab for the latest result.
