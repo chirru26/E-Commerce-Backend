@@ -27,7 +27,7 @@ public final class CatalogDtos {
 
     public record ProductWriteRequest(
             @NotBlank @Size(max = 180) String name,
-            @Size(max = 200) @Pattern(regexp = "^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$") String slug,
+            @Size(max = 200) @Pattern(regexp = "^(?:$|[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*)$") String slug,
             @NotBlank @Pattern(regexp = "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$") String sku,
             @Size(max = 4000) String description,
             @NotNull @DecimalMin(value = "0.01") @Digits(integer = 10, fraction = 2) BigDecimal price,
