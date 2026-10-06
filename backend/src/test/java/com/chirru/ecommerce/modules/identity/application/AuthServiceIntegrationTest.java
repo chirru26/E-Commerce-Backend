@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.chirru.ecommerce.modules.identity.infrastructure.IdentityUserRepository;
 import com.chirru.ecommerce.modules.identity.infrastructure.RefreshTokenRepository;
+import com.chirru.ecommerce.security.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +52,9 @@ class AuthServiceIntegrationTest {
     @Autowired
     RefreshTokenRepository refreshTokens;
 
+    @Autowired
+    JwtService jwtService;
+
     @BeforeEach
     void cleanDatabase() {
         refreshTokens.deleteAll();
@@ -72,6 +76,9 @@ class AuthServiceIntegrationTest {
         var user = users.findByEmailIgnoreCase("chirru@example.com").orElseThrow();
         assertNotEquals("A-unique-password-123", user.getPasswordHash());
         assertTrue(user.getPasswordHash().startsWith("$2"));
+        var claims = jwtService.parseIdentity(result.accessToken());
+        assertEquals(user.getId(), claims.userId());
+        assertEquals("USER", claims.role());
     }
 
     @Test
