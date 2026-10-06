@@ -26,15 +26,18 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokens;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final long accessTokenExpirationSeconds;
     private final long refreshExpirationSeconds;
 
     public AuthService(IdentityUserRepository users, RefreshTokenRepository refreshTokens,
                        PasswordEncoder passwordEncoder, JwtService jwtService,
+                       @Value("${app.security.jwt.access-token-expiration:900}") long accessTokenExpirationSeconds,
                        @Value("${app.security.jwt.refresh-token-expiration:604800}") long refreshExpirationSeconds) {
         this.users = users;
         this.refreshTokens = refreshTokens;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.accessTokenExpirationSeconds = accessTokenExpirationSeconds;
         this.refreshExpirationSeconds = refreshExpirationSeconds;
     }
 
@@ -87,7 +90,7 @@ public class AuthService {
         refreshTokens.save(new RefreshToken(user, hash(rawRefreshToken),
                 Instant.now().plusSeconds(refreshExpirationSeconds)));
         return new AuthResult(jwtService.issueAccessToken(user), rawRefreshToken,
-                "Bearer", 900, user.getId().toString(), user.getEmail(), user.getRole().name());
+                "Bearer", accessTokenExpirationSeconds, user.getId().toString(), user.getEmail(), user.getRole().name());
     }
 
     private static String normalizeEmail(String email) {
