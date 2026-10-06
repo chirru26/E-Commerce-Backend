@@ -27,10 +27,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7).trim();
             try {
-                var userId = jwtService.parseSubject(token);
+                var identity = jwtService.parseIdentity(token);
+                String role = identity.role();
+                if (!"USER".equals(role) && !"ADMIN".equals(role)) {
+                    throw new IllegalArgumentException("Unsupported role claim");
+                }
                 var authentication = new UsernamePasswordAuthenticationToken(
-                        userId.toString(), null,
-                        java.util.List.of(new SimpleGrantedAuthority("ROLE_USER")));
+                        identity.userId().toString(), null,
+                        java.util.List.of(new SimpleGrantedAuthority("ROLE_" + role)));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (JwtException | IllegalArgumentException ex) {
                 SecurityContextHolder.clearContext();
