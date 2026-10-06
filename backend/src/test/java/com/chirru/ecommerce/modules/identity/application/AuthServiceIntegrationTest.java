@@ -2,6 +2,7 @@ package com.chirru.ecommerce.modules.identity.application;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.chirru.ecommerce.modules.identity.domain.IdentityUser;
 import com.chirru.ecommerce.modules.identity.infrastructure.IdentityUserRepository;
 import com.chirru.ecommerce.modules.identity.infrastructure.RefreshTokenRepository;
 import com.chirru.ecommerce.security.JwtService;
@@ -9,15 +10,22 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.web.server.ResponseStatusException;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest
+@AutoConfigureMockMvc
 @Testcontainers(disabledWithoutDocker = true)
 class AuthServiceIntegrationTest {
 
@@ -54,6 +62,12 @@ class AuthServiceIntegrationTest {
 
     @Autowired
     JwtService jwtService;
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
+    @Autowired
+    MockMvc mockMvc;
 
     @BeforeEach
     void cleanDatabase() {
@@ -129,5 +143,44 @@ class AuthServiceIntegrationTest {
         assertThrows(ResponseStatusException.class,
                 () -> authService.register("weak@example.com", "short"));
         assertFalse(users.existsByEmailIgnoreCase("weak@example.com"));
+    }
+    @Test
+    void currentUserEndpointRequiresAuthentication() throws Exception {
+        mockMvc.perform(get("/api/v1/users/me"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void currentUserEndpointReturnsOnlySafeProfileFields() throws Exception {
+        var session = authService.register("profile@example.com", "A-unique-password-123");
+
+        mockMvc.perform(get("/api/v1/users/me")
+                        .header("Authorization", "Bearer " + session.accessToken()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(session.userId()))
+                .andExpect(jsonPath("$.email").value("profile@example.com"))
+                .andExpect(jsonPath("$.role").value("USER"))
+                .andExpect(jsonPath("$.createdAt").exists())
+                .andExpect(jsonPath("$.passwordHash").doesNotExist());
+    }
+
+    @Test
+    void normalUserCannotAccessAdminOnlyActuatorEndpoints() throws Exception {
+        var session = authService.register("member@example.com", "A-unique-password-123");
+
+        mockMvc.perform(get("/actuator/metrics")
+                        .header("Authorization", "Bearer " + session.accessToken()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void bootstrappedAdminRoleCanAccessAdminOnlyActuatorEndpoints() throws Exception {
+        IdentityUser admin = users.saveAndFlush(IdentityUser.adminAccount(
+                "admin@example.com", passwordEncoder.encode("A-unique-password-123")));
+        String token = jwtService.issueAccessToken(admin);
+
+        mockMvc.perform(get("/actuator/metrics")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
     }
 }
