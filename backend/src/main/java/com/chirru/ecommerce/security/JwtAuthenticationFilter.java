@@ -1,11 +1,14 @@
 package com.chirru.ecommerce.security;
 
+import com.chirru.ecommerce.modules.identity.domain.IdentityUser;
+import com.chirru.ecommerce.modules.identity.infrastructure.IdentityUserRepository;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,9 +18,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
+    private final IdentityUserRepository users;
 
-    public JwtAuthenticationFilter(JwtService jwtService) {
+    public JwtAuthenticationFilter(JwtService jwtService, IdentityUserRepository users) {
         this.jwtService = jwtService;
+        this.users = users;
     }
 
     @Override
@@ -28,13 +33,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = header.substring(7).trim();
             try {
                 var identity = jwtService.parseIdentity(token);
-                String role = identity.role();
-                if (!"USER".equals(role) && !"ADMIN".equals(role)) {
-                    throw new IllegalArgumentException("Unsupported role claim");
-                }
+                IdentityUser user = users.findById(identity.userId())
+                        .filter(IdentityUser::isEnabled)
+                        .orElseThrow(() -> new IllegalArgumentException("Unknown or disabled account"));
+
                 var authentication = new UsernamePasswordAuthenticationToken(
-                        identity.userId().toString(), null,
-                        java.util.List.of(new SimpleGrantedAuthority("ROLE_" + role)));
+                        user.getId().toString(), null,
+                        List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (JwtException | IllegalArgumentException ex) {
                 SecurityContextHolder.clearContext();
