@@ -32,10 +32,22 @@ public class IdentityUser {
     protected IdentityUser() {}
 
     public IdentityUser(String email, String passwordHash) {
+        this(email, passwordHash, Role.USER);
+    }
+
+    private IdentityUser(String email, String passwordHash, Role role) {
         this.email = email;
         this.passwordHash = passwordHash;
-        this.role = Role.USER;
+        this.role = role;
         this.enabled = true;
+    }
+
+    /**
+     * Creates an administrator only for trusted server-side provisioning paths.
+     * Public registration must always use the regular constructor.
+     */
+    public static IdentityUser adminAccount(String email, String passwordHash) {
+        return new IdentityUser(email, passwordHash, Role.ADMIN);
     }
 
     @PrePersist
@@ -48,4 +60,5 @@ public class IdentityUser {
     public String getPasswordHash() { return passwordHash; }
     public Role getRole() { return role; }
     public boolean isEnabled() { return enabled; }
+    public Instant getCreatedAt() { return createdAt; }
 }
