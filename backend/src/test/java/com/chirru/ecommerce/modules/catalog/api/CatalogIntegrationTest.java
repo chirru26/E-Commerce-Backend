@@ -228,6 +228,4 @@ class CatalogIntegrationTest {
                 .andExpect(status().isCreated());
     }
 
-    /**
-     */
 }
