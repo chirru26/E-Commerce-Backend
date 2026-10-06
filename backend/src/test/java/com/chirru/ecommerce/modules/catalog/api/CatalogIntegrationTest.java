@@ -55,7 +55,6 @@ class CatalogIntegrationTest {
     }
 
     @Autowired MockMvc mockMvc;
-    @Autowired CatalogServiceForTests unusedServiceMarker;
     @Autowired CategoryRepository categories;
     @Autowired ProductRepository products;
     @Autowired IdentityUserRepository users;
@@ -230,7 +229,5 @@ class CatalogIntegrationTest {
     }
 
     /**
-     * No-op marker keeps the test focused on the MVC surface; all setup goes through HTTP/repositories.
      */
-    interface CatalogServiceForTests {}
 }
