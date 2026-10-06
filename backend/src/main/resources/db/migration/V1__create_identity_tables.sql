@@ -12,7 +12,7 @@ CREATE TABLE identity_users (
 CREATE TABLE identity_refresh_tokens (
     id UUID PRIMARY KEY,
     user_id UUID NOT NULL REFERENCES identity_users(id) ON DELETE CASCADE,
-    token_hash CHAR(64) NOT NULL UNIQUE,
+    token_hash VARCHAR(64) NOT NULL UNIQUE,
     expires_at TIMESTAMPTZ NOT NULL,
     revoked BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
