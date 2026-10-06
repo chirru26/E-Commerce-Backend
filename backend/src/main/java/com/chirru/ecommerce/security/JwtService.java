@@ -39,9 +39,11 @@ public class JwtService {
                 .compact();
     }
 
-    public UUID parseSubject(String token) {
+    public TokenIdentity parseIdentity(String token) {
         Claims claims = Jwts.parser().verifyWith(signingKey).build()
                 .parseSignedClaims(token).getPayload();
-        return UUID.fromString(claims.getSubject());
+        return new TokenIdentity(UUID.fromString(claims.getSubject()), claims.get("role", String.class));
     }
+
+    public record TokenIdentity(UUID userId, String role) {}
 }
