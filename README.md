@@ -91,7 +91,23 @@ All inventory management endpoints require an administrator:
 
 Stock state is represented as `onHand`, `reserved`, and `available = onHand - reserved`. Adjustments can never make on-hand stock lower than existing reservations. A low-stock flag becomes true when available stock is at or below the configured threshold.
 
-The application service also provides reservation primitives for future Cart/Order modules: reserve by a unique reference key, release, and consume. Reservation and adjustment operations lock the stock row before changing quantities, preventing concurrent requests from overselling the same inventory. Reservation keys are intentionally one-time identifiers, and an active reservation is idempotent when the same product, quantity, and reference key are retried. Reservation operations are kept out of the public HTTP surface until the Order/Cart modules own their lifecycle.
+The application service also provides reservation primitives for future Cart/Order modules: reserve by a unique reference key, release, and consume. Reservation and adjustment operations lock the stock row before changing quantities, preventing concurrent requests from overselling the same inventory. Reservation keys are intentionally one-time identifiers, and an active reservation is idempotent when the same product, quantity, and reference key is retried. Reservation operations are kept out of the public HTTP surface until the Order/Cart modules own their lifecycle.
+
+## Cart API
+
+The Cart module owns the authenticated user's active cart and item quantities. Catalog remains the source of truth for product identity and current price; Cart stores only product IDs and quantities.
+
+Authenticated endpoints:
+
+- `GET /api/v1/cart` — return the user's current cart. An empty active cart is created only when no checkout-reserved cart exists.
+- `POST /api/v1/cart/items` — add a product and quantity.
+- `PUT /api/v1/cart/items/{productId}` — replace the quantity for an existing item.
+- `DELETE /api/v1/cart/items/{productId}` — remove one item.
+- `DELETE /api/v1/cart` — clear all items.
+
+Cart quantities are capped at 1,000 per product and 100 distinct products. Only active products belonging to active categories can be added, and one cart cannot mix currencies. Cart totals use the catalog's current price at read time.
+
+The Cart application boundary also exposes checkout orchestration for the future Order module through `CartCheckoutPort`. Preparing checkout transitions the cart to `CHECKOUT_RESERVED` and reserves each item through Inventory using unique reservation-attempt references. While reserved, cart mutations are blocked. Order/payment failure can release those reservations back to `ACTIVE`; successful order completion consumes the reservations and marks the cart `CHECKED_OUT`. Stock is therefore not held merely because a product is sitting in a cart.
 
 ## Verification
 
