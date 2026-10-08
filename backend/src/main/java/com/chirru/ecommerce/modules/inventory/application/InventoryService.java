@@ -182,7 +182,8 @@ public class InventoryService {
         if (stocks.findByProductId(productId).isEmpty()) {
             throw notFound("Inventory record not found");
         }
-        return PageResponse.from(movements.findByProductIdOrderByCreatedAtDesc(productId, pageRequest(page, size))
+        return PageResponse.from(movements.findByProductIdOrderByCreatedAtDesc(
+                        productId, movementPageRequest(page, size))
                 .map(InventoryService::toMovementView));
     }
 
@@ -243,6 +244,13 @@ public class InventoryService {
         if (size < 1) throw badRequest("Page size must be at least 1");
         int safeSize = Math.min(size, MAX_PAGE_SIZE);
         return PageRequest.of(page, safeSize, Sort.by(Sort.Direction.DESC, "updatedAt"));
+    }
+
+    private static PageRequest movementPageRequest(int page, int size) {
+        if (page < 0) throw badRequest("Page cannot be negative");
+        if (size < 1) throw badRequest("Page size must be at least 1");
+        int safeSize = Math.min(size, MAX_PAGE_SIZE);
+        return PageRequest.of(page, safeSize, Sort.by(Sort.Direction.DESC, "createdAt"));
     }
 
     private static void validatePositiveQuantity(long quantity) {
