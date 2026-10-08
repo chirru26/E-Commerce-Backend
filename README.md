@@ -109,6 +109,13 @@ Cart quantities are capped at 1,000 per product and 100 distinct products. Only 
 
 The Cart application boundary also exposes checkout orchestration for the future Order module through `CartCheckoutPort`. Preparing checkout transitions the cart to `CHECKOUT_RESERVED` and reserves each item through Inventory using unique reservation-attempt references. While reserved, cart mutations are blocked. Order/payment failure can release those reservations back to `ACTIVE`; successful order completion consumes the reservations and marks the cart `CHECKED_OUT`. These checkout methods are application-level integration points and are intentionally not exposed as customer HTTP endpoints yet.
 
+## Developer Documentation
+
+- [API Guide](docs/API_GUIDE.md) — complete HTTP endpoint reference with requests, responses, authentication, validation, and checkout flows.
+- [Backend Developer Documentation](docs/DEVELOPER_DOCUMENTATION.md) — architecture, module boundaries, database invariants, testing, and extension guidance.
+
+For an interactive API explorer, use Swagger UI at `http://localhost:8081/swagger-ui/index.html` when the core backend is running.
+
 ## Verification
 
 GitHub Actions runs `mvn clean verify`, validates the Compose configuration, and builds both application images for pushes to `main` and pull requests. See the repository's Actions tab for the latest result.
