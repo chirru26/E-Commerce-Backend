@@ -9,6 +9,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.chirru.ecommerce.modules.cart.api.CartDtos.AddCartItemRequest;
+import com.chirru.ecommerce.modules.cart.api.CartDtos.UpdateCartItemRequest;
 import com.chirru.ecommerce.modules.cart.application.CartService;
 import com.chirru.ecommerce.modules.cart.domain.CartStatus;
 import com.chirru.ecommerce.modules.cart.infrastructure.CartItemRepository;
@@ -205,14 +207,13 @@ class CartIntegrationTest {
         Product product = createProduct("Camphor", "CAM-001", "ACTIVE");
         inventoryService.initializeInventory(new InventoryCreateRequest(product.getId(), 10, 1));
 
-        UUID userId = users.saveAndFlush(new IdentityUser(
-                "checkout@example.com", passwordEncoder.encode("A-unique-password-123"))).getId();
-        String token = jwtService.issueAccessToken(users.findById(userId).orElseThrow());
+        IdentityUser user = users.saveAndFlush(new IdentityUser(
+                "checkout@example.com", passwordEncoder.encode("A-unique-password-123")));
+        String token = jwtService.issueAccessToken(user);
 
-        cartService.addItem(userId,
-                new AddCartItemRequest(product.getId(), 6));
+        cartService.addItem(user.getId(), new AddCartItemRequest(product.getId(), 6));
 
-        var prepared = cartService.prepareForCheckout(userId, "order-100");
+        var prepared = cartService.prepareForCheckout(user.getId(), "order-100");
         assertEquals(1, prepared.items().size());
         assertEquals(6, prepared.items().getFirst().quantity());
 
@@ -221,20 +222,20 @@ class CartIntegrationTest {
         assertEquals(4, stocks.findByProductId(product.getId()).orElseThrow().availableQuantity());
 
         ResponseStatusException editError = assertThrows(ResponseStatusException.class,
-                () -> cartService.updateItem(userId, product.getId(),
+                () -> cartService.updateItem(user.getId(), product.getId(),
                         new UpdateCartItemRequest(2)));
         assertEquals(409, editError.getStatusCode().value());
 
-        var preparedRepeat = cartService.prepareForCheckout(userId, "order-100");
+        var preparedRepeat = cartService.prepareForCheckout(user.getId(), "order-100");
         assertEquals(prepared.items().getFirst().reservationId(),
                 preparedRepeat.items().getFirst().reservationId());
 
-        cartService.releaseCheckout(userId, "order-100");
+        cartService.releaseCheckout(user.getId(), "order-100");
         assertEquals(CartStatus.ACTIVE, carts.findById(prepared.cartId()).orElseThrow().getStatus());
         assertEquals(10, stocks.findByProductId(product.getId()).orElseThrow().availableQuantity());
 
-        var preparedAgain = cartService.prepareForCheckout(userId, "order-101");
-        cartService.completeCheckout(userId, "order-101");
+        var preparedAgain = cartService.prepareForCheckout(user.getId(), "order-101");
+        cartService.completeCheckout(user.getId(), "order-101");
         assertEquals(CartStatus.CHECKED_OUT, carts.findById(preparedAgain.cartId()).orElseThrow().getStatus());
 
         var stock = stocks.findByProductId(product.getId()).orElseThrow();

@@ -9,7 +9,6 @@ import com.chirru.ecommerce.modules.cart.domain.CartItem;
 import com.chirru.ecommerce.modules.cart.domain.CartStatus;
 import com.chirru.ecommerce.modules.cart.infrastructure.CartItemRepository;
 import com.chirru.ecommerce.modules.cart.infrastructure.CartRepository;
-import com.chirru.ecommerce.modules.catalog.domain.ProductStatus;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
@@ -193,7 +192,7 @@ public class CartService implements CartCheckoutPort {
     private CatalogProductPort.ProductSnapshot requirePurchasableProduct(UUID productId) {
         CatalogProductPort.ProductSnapshot product = catalogProducts.findById(productId)
                 .orElseThrow(() -> notFound("Product not found"));
-        if (product.status() != ProductStatus.ACTIVE || !product.categoryActive()) {
+        if (!product.active() || !product.categoryActive()) {
             throw conflict("Product is not available for purchase");
         }
         return product;
@@ -241,8 +240,7 @@ public class CartService implements CartCheckoutPort {
                 product == null ? null : product.currency(),
                 item.getQuantity(),
                 lineTotal,
-                product != null && product.status() == ProductStatus.ACTIVE
-                        && product.categoryActive());
+                product != null && product.active() && product.categoryActive());
     }
 
     private CheckoutSnapshot toCheckoutSnapshot(Cart cart, List<CartItem> cartItems,

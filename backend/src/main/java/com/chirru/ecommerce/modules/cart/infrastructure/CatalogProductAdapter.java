@@ -2,6 +2,7 @@ package com.chirru.ecommerce.modules.cart.infrastructure;
 
 import com.chirru.ecommerce.modules.cart.application.CatalogProductPort;
 import com.chirru.ecommerce.modules.catalog.domain.Product;
+import com.chirru.ecommerce.modules.catalog.domain.ProductStatus;
 import com.chirru.ecommerce.modules.catalog.infrastructure.ProductRepository;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,7 +23,8 @@ public class CatalogProductAdapter implements CatalogProductPort {
 
     private ProductSnapshot toSnapshot(Product product) {
         return new ProductSnapshot(product.getId(), product.getSku(), product.getName(),
-                product.getPrice(), product.getCurrency(), product.getStatus(),
+                product.getPrice(), product.getCurrency(),
+                product.getStatus() == ProductStatus.ACTIVE,
                 product.getCategory().isActive());
     }
 }
