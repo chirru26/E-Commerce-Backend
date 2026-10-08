@@ -76,6 +76,23 @@ Catalog writes and management are restricted to administrators:
 
 Product creation requires a unique SKU, price greater than zero, currency code (defaults to INR), and an active category. Products default to `DRAFT` unless an administrator explicitly sets their status to `ACTIVE`. Public search only returns active products in active categories. Deleting a product archives it, and deleting a category deactivates it, preserving references for future orders and inventory records. Public pagination defaults to 20 products and caps page size at 100.
 
+## Inventory API
+
+Inventory is deliberately separated from Catalog. Inventory records store the catalog `productId` and stock state; they do not own product name, price, category, or SKU. A small catalog adapter supplies read-only product metadata at API boundaries without making Inventory depend on Catalog entities in its domain model.
+
+All inventory management endpoints require an administrator:
+
+- `GET /api/v1/admin/inventory?page=0&size=20` — list inventory records.
+- `GET /api/v1/admin/inventory/{productId}` — inspect stock for one product.
+- `POST /api/v1/admin/inventory` — initialize a product's inventory record with opening quantity and low-stock threshold.
+- `PUT /api/v1/admin/inventory/{productId}` — update the low-stock threshold.
+- `POST /api/v1/admin/inventory/{productId}/adjustments` — apply a signed stock adjustment with an audit reason.
+- `GET /api/v1/admin/inventory/{productId}/movements?page=0&size=20` — inspect the immutable movement ledger.
+
+Stock state is represented as `onHand`, `reserved`, and `available = onHand - reserved`. Adjustments can never make on-hand stock lower than existing reservations. A low-stock flag becomes true when available stock is at or below the configured threshold.
+
+The application service also provides reservation primitives for future Cart/Order modules: reserve by a unique reference key, release, and consume. Reservation and adjustment operations lock the stock row before changing quantities, preventing concurrent requests from overselling the same inventory. Reservation keys are intentionally one-time identifiers, and an active reservation is idempotent when the same product, quantity, and reference key are retried. Reservation operations are kept out of the public HTTP surface until the Order/Cart modules own their lifecycle.
+
 ## Verification
 
 GitHub Actions runs `mvn clean verify`, validates the Compose configuration, and builds both application images for pushes to `main` and pull requests. See the repository's Actions tab for the latest result.
