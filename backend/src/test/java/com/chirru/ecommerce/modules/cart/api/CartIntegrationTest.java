@@ -203,7 +203,7 @@ class CartIntegrationTest {
     }
 
     @Test
-    void checkoutPreparationReservesInventoryAndCanBeReleasedOrCompleted() {
+    void checkoutPreparationReservesInventoryAndCanBeReleasedOrCompleted() throws Exception {
         Product product = createProduct("Camphor", "CAM-001", "ACTIVE");
         inventoryService.initializeInventory(new InventoryCreateRequest(product.getId(), 10, 1));
 
