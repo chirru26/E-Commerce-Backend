@@ -107,7 +107,7 @@ Authenticated endpoints:
 
 Cart quantities are capped at 1,000 per product and 100 distinct products. Only active products belonging to active categories can be added, and one cart cannot mix currencies. Cart totals use the catalog's current price at read time.
 
-The Cart application boundary also exposes checkout orchestration for the future Order module through `CartCheckoutPort`. Preparing checkout transitions the cart to `CHECKOUT_RESERVED` and reserves each item through Inventory using unique reservation-attempt references. While reserved, cart mutations are blocked. Order/payment failure can release those reservations back to `ACTIVE`; successful order completion consumes the reservations and marks the cart `CHECKED_OUT`. Stock is therefore not held merely because a product is sitting in a cart.
+The Cart application boundary also exposes checkout orchestration for the future Order module through `CartCheckoutPort`. Preparing checkout transitions the cart to `CHECKOUT_RESERVED` and reserves each item through Inventory using unique reservation-attempt references. While reserved, cart mutations are blocked. Order/payment failure can release those reservations back to `ACTIVE`; successful order completion consumes the reservations and marks the cart `CHECKED_OUT`. These checkout methods are application-level integration points and are intentionally not exposed as customer HTTP endpoints yet.
 
 ## Verification
 
