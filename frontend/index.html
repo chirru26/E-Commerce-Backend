@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShopLite — E-Commerce Demo</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav">
+      <a class="brand" href="#">ShopLite</a>
+      <nav><a href="#products">Products</a><a href="#categories">Categories</a></nav>
+      <div class="nav-actions">
+        <span id="userLabel" class="user-label"></span>
+        <button id="authButton" class="button button-ghost">Login</button>
+        <button id="cartButton" class="button button-primary">Cart <span id="cartCount">0</span></button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-inner">
+        <div>
+          <p class="eyebrow">CONNECTED TO SPRING BOOT</p>
+          <h1>Simple shopping, powered by your API.</h1>
+          <p class="hero-copy">A small vanilla HTML, CSS and JavaScript storefront connected to the catalog, identity and cart APIs.</p>
+          <a class="button button-primary" href="#products">Browse products</a>
+        </div>
+        <div class="hero-card">
+          <span>API</span><strong id="apiStatus">Checking…</strong>
+          <small id="apiStatusText">Connecting to the gateway</small>
+        </div>
+      </div>
+    </section>
+
+    <section id="categories" class="section">
+      <div class="container">
+        <div class="section-heading"><div><p class="eyebrow">EXPLORE</p><h2>Categories</h2></div></div>
+        <div id="categoryList" class="category-list">
+          <button class="category-chip active" data-category="">All products</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="products" class="section section-products">
+      <div class="container">
+        <div class="section-heading products-heading">
+          <div><p class="eyebrow">CATALOG</p><h2>Products</h2></div>
+          <form id="searchForm" class="search">
+            <input id="searchInput" type="search" maxlength="100" placeholder="Search products…">
+            <button class="button button-dark" type="submit">Search</button>
+          </form>
+        </div>
+        <div id="message" class="message hidden"></div>
+        <div id="productGrid" class="product-grid"></div>
+        <div class="load-more-wrap"><button id="loadMore" class="button button-ghost hidden">Load more</button></div>
+      </div>
+    </section>
+  </main>
+
+  <aside id="cartDrawer" class="drawer" aria-hidden="true">
+    <div class="drawer-header">
+      <div><p class="eyebrow">YOUR CART</p><h2>Shopping cart</h2></div>
+      <button id="closeCart" class="icon-button" aria-label="Close cart">×</button>
+    </div>
+    <div id="cartContent" class="cart-content"></div>
+  </aside>
+  <div id="drawerBackdrop" class="drawer-backdrop hidden"></div>
+
+  <div id="authModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <div class="modal-card">
+      <button id="closeAuth" class="icon-button modal-close" aria-label="Close">×</button>
+      <p class="eyebrow">ACCOUNT</p><h2 id="authTitle">Welcome back</h2>
+      <p id="authSubtitle" class="muted">Login to manage your cart.</p>
+      <form id="authForm" class="form">
+        <label>Email<input id="email" type="email" required maxlength="254" autocomplete="email"></label>
+        <label>Password<input id="password" type="password" required minlength="12" maxlength="72" autocomplete="current-password"></label>
+        <button id="authSubmit" class="button button-primary full" type="submit">Login</button>
+      </form>
+      <p id="authError" class="form-error"></p>
+      <button id="toggleAuth" class="text-button">Need an account? Register</button>
+    </div>
+  </div>
+
+  <footer class="footer"><div class="container">ShopLite frontend · Vanilla HTML/CSS/JS · Spring Boot API</div></footer>
+  <script src="./app.js"></script>
+</body>
+</html>
