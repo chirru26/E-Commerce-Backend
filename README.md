@@ -114,7 +114,7 @@ The Cart application boundary also exposes checkout orchestration for the future
 - [API Guide](docs/API_GUIDE.md) — complete HTTP endpoint reference with requests, responses, authentication, validation, and checkout flows.
 - [Backend Developer Documentation](docs/DEVELOPER_DOCUMENTATION.md) — architecture, module boundaries, database invariants, testing, and extension guidance.
 
-For an interactive API explorer, use Swagger UI at `http://localhost:8081/swagger-ui/index.html` when the core backend is running.
+For an interactive API explorer, use Swagger UI at `http://localhost:8080/swagger-ui/index.html` when the core backend is running.
 
 ## Verification
 

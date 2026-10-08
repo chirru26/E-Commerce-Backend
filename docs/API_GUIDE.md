@@ -15,10 +15,10 @@ The backend uses Java 21, Spring Boot, PostgreSQL, Redis, Flyway, Spring Securit
 
 | Environment | URL | Purpose |
 |---|---|---|
-| Gateway | `http://localhost:8080` | Normal client entry point |
-| Core backend | `http://localhost:8081` | Direct backend/local debugging |
-| Swagger UI | `http://localhost:8081/swagger-ui/index.html` | Interactive API documentation |
-| OpenAPI JSON | `http://localhost:8081/v3/api-docs` | Generated OpenAPI document |
+| Gateway | `http://localhost:8081` | Normal client entry point |
+| Core backend | `http://localhost:8080` | Direct backend/local debugging |
+| Swagger UI | `http://localhost:8080/swagger-ui/index.html` | Interactive API documentation |
+| OpenAPI JSON | `http://localhost:8080/v3/api-docs` | Generated OpenAPI document |
 
 Use the Gateway for normal client traffic. It forwards `/api/**` to the core backend.
 

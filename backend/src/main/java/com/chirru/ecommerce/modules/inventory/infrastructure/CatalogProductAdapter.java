@@ -6,7 +6,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
 
-@Component
+@Component("inventoryCatalogProductAdapter")
 class CatalogProductAdapter implements CatalogProductPort {
     private final ProductRepository products;
 

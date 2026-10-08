@@ -5,8 +5,6 @@ RUN mvn --batch-mode --no-transfer-progress -pl backend -am -DskipTests package
 
 FROM eclipse-temurin:21-jre
 WORKDIR /app
-RUN useradd --system --uid 10001 spring
 COPY --from=build /workspace/backend/target/ecommerce-core-0.0.1-SNAPSHOT.jar app.jar
-USER 10001
-EXPOSE 8081
-ENTRYPOINT ["java","-XX:MaxRAMPercentage=75.0","-jar","/app/app.jar"]
+EXPOSE 8080
+ENTRYPOINT ["java","-jar","/app/app.jar"]
